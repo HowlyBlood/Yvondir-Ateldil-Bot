@@ -24,5 +24,6 @@ Messages = {
                          "cette épreuve sont les suivants : \n%s.\n\nVoici la liste des participants au raid : ",
     'explain_date_definition': "Définissez une date avec /set_date [ID] [AAAA-MM-JJ HH:MM]",
     'explain_role_pickup': "Veillez réagir en fonction du rôle que vous voulez jouer. Merci de ne mettre qu'une seule "
-                           "réaction par personne. Vous pouvez toujours vous désinscrire en enlevant votre réaction "
+                           "réaction par personne. Vous pouvez toujours vous désinscrire en enlevant votre réaction ",
+    'empty_role': "Vide"
 }

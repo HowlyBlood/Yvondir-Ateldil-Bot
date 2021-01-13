@@ -26,9 +26,9 @@ class Raid(Instanciable):
         self.status = RaidStatus.PLANNED
         self.discord_message_identifier = None
         self.members = {
-            'tank': [],
-            'heal': [],
-            'dd': []
+            'Tank': [None for i in range(self.TANK_LIMIT)],
+            'Heal': [None for i in range(self.HEAL_LIMIT)],
+            'DD': [None for i in range(self.DD_LIMIT)]
         }
 
     def start(self):
@@ -59,14 +59,10 @@ class Raid(Instanciable):
         embed.set_author(name=Messages.get('explain_date_definition'))
         embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/647916987950956554.png?size=64&v=1")
 
-        for index, tank in enumerate(self.members.get('tank')):
-            embed.add_field(name=f"Tank {index + 1} :", value=tank.user.mention, inline=True)
-
-        for index, heal in enumerate(self.members.get('heal')):
-            embed.add_field(name=f"Heal {index + 1} :", value=heal.user.mention, inline=True)
-
-        for index, dd in enumerate(self.members.get('heal')):
-            embed.add_field(name=f"DD {index + 1} :", value=dd.user.mention, inline=True)
+        for role in self.members.keys():
+            for index, player in enumerate(self.members.get(role)):
+                field_value = Messages.get('empty_role') if player is None else player.user.mention
+                embed.add_field(name=f"{role} {index + 1} :", value=field_value, inline=True)
 
         embed.set_footer(text=Messages.get('explain_role_pickup'))
         raid_description_message = await original_message.channel.send(embed=embed)
