@@ -1,16 +1,14 @@
 import datetime
 import locale
-import logging
 
 import discord
 from discord.utils import get
 
-import config
-from lists import Raidlist
-from messages import Messages
-from raid import Raid
-from utils import *
-from yvondir_ateldil import bot as ya
+from yvondir_ateldil.lists import Raidlist
+from yvondir_ateldil.messages import Messages
+from yvondir_ateldil.raid import Raid
+from yvondir_ateldil.utils import *
+from yvondir_ateldil import bot as ya, config
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)

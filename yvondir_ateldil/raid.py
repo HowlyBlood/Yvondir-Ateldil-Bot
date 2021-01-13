@@ -9,6 +9,7 @@ from lists import Raidlist
 from messages import Messages
 from yvondir_ateldil import bot as ya_bot
 
+
 class RaidStatus(Enum):
     PLANNED = 0
     STARTED = 1
