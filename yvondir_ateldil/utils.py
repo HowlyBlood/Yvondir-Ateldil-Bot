@@ -11,3 +11,10 @@ def extract_command_args(command):
     :return: List containing command stripped from header
     """
     return re.match(r'^(?:/\w+)\s(.*)$', command).group(1).split()
+
+
+def find_raid_from_message(raid_list, message_id):
+    for raid in raid_list.values():
+        if raid.discord_message_identifier == message_id:
+            return raid
+    return None

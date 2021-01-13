@@ -1,5 +1,6 @@
 import datetime
 import locale
+import signal
 
 import discord
 from discord.utils import get
@@ -61,8 +62,12 @@ async def on_message(message):
     if re.match(r'^/(sd|set_date)\s?', message.content):
         raid_identifier, date, hour, *others = extract_command_args(message.content)
         raid = raid_list[raid_identifier]
-        raid.date = datetime.datetime.fromisoformat(f"{date} {hour}")
 
+        if raid is None:
+            await message.reply(content=Messages.get('raid_not_found') % raid_identifier)
+            return
+
+        raid.date = datetime.datetime.fromisoformat(f"{date} {hour}")
         raid_message = await message.channel.fetch_message(raid.identifier)
 
         await raid_message.edit(embed=raid.render())
@@ -88,76 +93,86 @@ async def on_message(message):
 async def on_raw_reaction_add(payload):
     guild = discord.utils.get(bot.guilds, name=config.GUILD)
     chan = guild.get_channel(payload.channel_id)
-    msg = await chan.fetch_message(payload.message_id)
     user = bot.get_user(payload.user_id)
-    reaction = get(msg.reactions, emoji=payload.emoji)
+    msg = await chan.fetch_message(payload.message_id)
     embed = msg.embeds[0]
+
+    raid = find_raid_from_message(raid_list, payload.message_id)
+    if raid is None:
+        print(f"Failed to find raid {payload.message_id}")
+        print(raid_list)
+        return
+    print(raid, embed)
 
     T_role = get(guild.roles, name=f"Tank_{embed.title}")
     H_role = get(guild.roles, name=f"Heal_{embed.title}")
     D_role = get(guild.roles, name=f"DD_{embed.title}")
 
     if user.name != 'Yvondir Ateldil':
-        if reaction.emoji == bot.get_emoji(config.TANK):
-            if reaction.count == 2:
-                Mbrs[0] = user.mention
-                embed.set_field_at(index=0, name='Tank :', value=Mbrs[0], inline=True)
-                await payload.member.add_roles(T_role)
-            else:
-                await user.send(content='Plus de place pour ce rôle')
-        elif reaction.emoji == bot.get_emoji(config.HEAL):
-            if reaction.count == 2:
-                Mbrs[1] = user.mention
-                embed.set_field_at(index=1, name='Heal 1 :', value=Mbrs[1], inline=True)
-                await payload.member.add_roles(H_role)
-            elif reaction.count == 3:
-                Mbrs[2] = user.mention
-                embed.set_field_at(index=2, name='Heal 2 :', value=Mbrs[2], inline=True)
-                await payload.member.add_roles(f"Heal_{role_list[role_list.index(embed.author)]}")
-            else:
-                await user.send(
-                    content="Désolé, il n'y a plus de place pour ce rôle, reste à l'affut en cas de désistement")
-        elif reaction.emoji == bot.get_emoji(config.DD):
-            if reaction.count == 2:
-                Mbrs[3] = user.mention
-                embed.set_field_at(index=3, name='DD 1 :', value=Mbrs[3], inline=True)
-                await payload.member.add_roles(H_role)
-            elif reaction.count == 3:
-                Mbrs[4] = user.mention
-                embed.set_field_at(index=4, name='DD 2 :', value=Mbrs[4], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 4:
-                Mbrs[5] = user.mention
-                embed.set_field_at(index=5, name='DD 3 :', value=Mbrs[5], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 5:
-                Mbrs[6] = user.mention
-                embed.set_field_at(index=6, name='DD 4 :', value=Mbrs[6], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 6:
-                Mbrs[7] = user.mention
-                embed.set_field_at(index=7, name='DD 5 :', value=Mbrs[7], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 7:
-                Mbrs[8] = user.mention
-                embed.set_field_at(index=8, name='DD 6 :', value=Mbrs[8], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 8:
-                Mbrs[9] = user.mention
-                embed.set_field_at(index=9, name='DD 7 :', value=Mbrs[9], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 9:
-                Mbrs[10] = user.mention
-                embed.set_field_at(index=10, name='DD 8 :', value=Mbrs[10], inline=True)
-                await payload.member.add_roles(D_role)
-            elif reaction.count == 10:
-                Mbrs[11] = user.mention
-                embed.set_field_at(index=11, name='DD 9 :', value=Mbrs[11], inline=True)
-                await payload.member.add_roles(D_role)
-            else:
-                dm_channel = await user.create_dm()
-                dm_channel.send('Plus de place pour ce role')
-    await msg.edit(embed=embed)
+        if not raid.add_member(payload.emoji, user):
+            await user.send(content=Messages.get('role_full'))
+
+
+        # if reaction.emoji == ya_bot.get_emoji('tank'):
+        #     if reaction.count == 2:
+        #         Mbrs[0] = user.mention
+        #         embed.set_field_at(index=0, name='Tank :', value=Mbrs[0], inline=True)
+        #         await payload.member.add_roles(T_role)
+        #     else:
+        #         await user.send(content='Plus de place pour ce rôle')
+        # elif reaction.emoji == bot.get_emoji(config.HEAL):
+        #     if reaction.count == 2:
+        #         Mbrs[1] = user.mention
+        #         embed.set_field_at(index=1, name='Heal 1 :', value=Mbrs[1], inline=True)
+        #         await payload.member.add_roles(H_role)
+        #     elif reaction.count == 3:
+        #         Mbrs[2] = user.mention
+        #         embed.set_field_at(index=2, name='Heal 2 :', value=Mbrs[2], inline=True)
+        #         await payload.member.add_roles(f"Heal_{role_list[role_list.index(embed.author)]}")
+        #     else:
+        #         await user.send(
+        #             content="Désolé, il n'y a plus de place pour ce rôle, reste à l'affut en cas de désistement")
+        # elif reaction.emoji == bot.get_emoji(config.DD):
+        #     if reaction.count == 2:
+        #         Mbrs[3] = user.mention
+        #         embed.set_field_at(index=3, name='DD 1 :', value=Mbrs[3], inline=True)
+        #         await payload.member.add_roles(H_role)
+        #     elif reaction.count == 3:
+        #         Mbrs[4] = user.mention
+        #         embed.set_field_at(index=4, name='DD 2 :', value=Mbrs[4], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 4:
+        #         Mbrs[5] = user.mention
+        #         embed.set_field_at(index=5, name='DD 3 :', value=Mbrs[5], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 5:
+        #         Mbrs[6] = user.mention
+        #         embed.set_field_at(index=6, name='DD 4 :', value=Mbrs[6], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 6:
+        #         Mbrs[7] = user.mention
+        #         embed.set_field_at(index=7, name='DD 5 :', value=Mbrs[7], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 7:
+        #         Mbrs[8] = user.mention
+        #         embed.set_field_at(index=8, name='DD 6 :', value=Mbrs[8], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 8:
+        #         Mbrs[9] = user.mention
+        #         embed.set_field_at(index=9, name='DD 7 :', value=Mbrs[9], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 9:
+        #         Mbrs[10] = user.mention
+        #         embed.set_field_at(index=10, name='DD 8 :', value=Mbrs[10], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     elif reaction.count == 10:
+        #         Mbrs[11] = user.mention
+        #         embed.set_field_at(index=11, name='DD 9 :', value=Mbrs[11], inline=True)
+        #         await payload.member.add_roles(D_role)
+        #     else:
+        #         dm_channel = await user.create_dm()
+        #         dm_channel.send('Plus de place pour ce role')
+    await msg.edit(embed=await raid.render())
 
 
 @bot.event

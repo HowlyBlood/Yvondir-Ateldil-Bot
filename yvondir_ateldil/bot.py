@@ -5,9 +5,9 @@ from singleton_decorator import singleton
 class Bot:
     emoji_prefix = 'ya'
     emojis = {
-        'tank': {'name': "tank", 'image_path': 'assets/tank.png'},
-        'heal': {'name': "heal", 'image_path': 'assets/heal.png'},
-        'dd': {'name': "dd", 'image_path': 'assets/dd.png'},
+        'tank': {'name': "tank", 'role': "Tank", 'image_path': 'assets/tank.png'},
+        'heal': {'name': "heal", 'role': "Heal", 'image_path': 'assets/heal.png'},
+        'dd': {'name': "dd", 'role': "DD", 'image_path': 'assets/dd.png'},
         'time': {'name': "time", 'image_path': 'assets/time.png'},
     }
 
@@ -41,4 +41,11 @@ class Bot:
                 emoji['id'] = found_emoji[0].id
 
     def get_emoji(self, name):
+        if name.startwith(f"{self.emoji_prefix}_"):
+            name = name.replace(f"{self.emoji_prefix}_", "")
+
         return self.emojis.get(name)['id']
+
+    def get_role(self, emoji):
+        name = emoji.replace(f"{self.emoji_prefix}_", "")
+        return self.emojis.get(name)['role']

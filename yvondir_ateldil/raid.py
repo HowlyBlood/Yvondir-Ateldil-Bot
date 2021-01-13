@@ -1,13 +1,12 @@
 import discord
 from discord.utils import get
 
-import config
-from interfaces import Instanciable
 from enum import Enum
 
-from lists import Raidlist
-from messages import Messages
+from yvondir_ateldil.lists import Raidlist
+from yvondir_ateldil.messages import Messages
 from yvondir_ateldil import bot as ya_bot
+from yvondir_ateldil.interfaces import Instanciable
 
 
 class RaidStatus(Enum):
@@ -70,6 +69,20 @@ class Raid(Instanciable):
             installed_emoji = bot.get_emoji(role)
             await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
 
+    def _member_list(self):
+        members = []
+        for group in self.members.values():
+            members += group
+        return members
+
+    def add_member(self, emoji, user):
+        bot = ya_bot.Bot()
+        role = bot.get_role(emoji)
+
+        print(emoji, user)
+        print(self._member_list())
+        return True
+
     async def render(self):
         if Raidlist[self.raid]['DLC'] == 'Vanilla':
             desc = Messages.get('created_vocal_no_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
@@ -85,7 +98,7 @@ class Raid(Instanciable):
 
         for role in self.members.keys():
             for index, player in enumerate(self.members.get(role)):
-                field_value = Messages.get('empty_role') if player is None else player.user.mention
+                field_value = Messages.get('empty_role') if player is None else str(player)
                 embed.add_field(name=f"{role} {index + 1} :", value=field_value, inline=True)
 
         embed.set_footer(text=Messages.get('explain_role_pickup'))

@@ -25,5 +25,6 @@ Messages = {
     'explain_date_definition': "Définissez une date avec /set_date [ID] [AAAA-MM-JJ HH:MM]",
     'explain_role_pickup': "Veillez réagir en fonction du rôle que vous voulez jouer. Merci de ne mettre qu'une seule "
                            "réaction par personne. Vous pouvez toujours vous désinscrire en enlevant votre réaction ",
-    'empty_role': "Vide"
+    'empty_role': "Vide",
+    'role_full': "Il n'y a plus de place pour ce rôle"
 }
