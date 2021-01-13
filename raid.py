@@ -1,4 +1,5 @@
 import discord
+from discord.utils import get
 
 import config
 from interfaces import Instanciable
@@ -6,7 +7,7 @@ from enum import Enum
 
 from lists import Raidlist
 from messages import Messages
-from yvondil_ateldil import bot as ya_bot
+from yvondir_ateldil import bot as ya_bot
 
 class RaidStatus(Enum):
     PLANNED = 0
@@ -34,8 +35,19 @@ class Raid(Instanciable):
     def start(self):
         pass
 
-    def end(self):
-        pass
+    async def end(self, guild, original_message):
+        discord_raid_message = await original_message.channel.fetch_message(self.discord_message_identifier)
+        delete_pool = [
+            get(guild.voice_channels, name=self.identifier),
+            get(guild.roles, name=f"Tank_{self.identifier}"),
+            get(guild.roles, name=f"Heal_{self.identifier}"),
+            get(guild.roles, name=f"DD_{self.identifier}"),
+            original_message,
+            discord_raid_message
+        ]
+
+        for to_delete_object in delete_pool:
+            await to_delete_object.delete()
 
     async def setup(self, discord_client, guild, channel_category, original_message):
         dd_role = await guild.create_role(name=f"DD_{self.identifier}", colour=discord.Colour(0x2ecc71))
@@ -48,6 +60,16 @@ class Raid(Instanciable):
         await vocal.set_permissions(heal_role, connect=True)
         await vocal.set_permissions(dd_role, connect=True)
 
+        embed = await self.render()
+        raid_description_message = await original_message.channel.send(embed=embed)
+        self.discord_message_identifier = raid_description_message.id
+
+        bot = ya_bot.Bot()
+        for role in ["tank", "heal", "dd"]:
+            installed_emoji = bot.get_emoji(role)
+            await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
+
+    async def render(self):
         if Raidlist[self.raid]['DLC'] == 'Vanilla':
             desc = Messages.get('created_vocal_no_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
@@ -56,7 +78,8 @@ class Raid(Instanciable):
             desc = Messages.get('created_vocal_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['DLC'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
-        embed.set_author(name=Messages.get('explain_date_definition'))
+        author_message = self.date.strftime("Le %A %d %B %Y à %H:%M") if self.date is not None else Messages.get('explain_date_definition')
+        embed.set_author(name=author_message)
         embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/647916987950956554.png?size=64&v=1")
 
         for role in self.members.keys():
@@ -65,10 +88,5 @@ class Raid(Instanciable):
                 embed.add_field(name=f"{role} {index + 1} :", value=field_value, inline=True)
 
         embed.set_footer(text=Messages.get('explain_role_pickup'))
-        raid_description_message = await original_message.channel.send(embed=embed)
-        self.discord_message_identifier = raid_description_message.id
 
-        bot = ya_bot.Bot()
-        for role in ["tank", "heal", "dd"]:
-            installed_emoji = bot.get_emoji(role)
-            await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
+        return embed

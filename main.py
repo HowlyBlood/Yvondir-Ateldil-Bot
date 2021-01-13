@@ -10,16 +10,10 @@ from lists import Raidlist
 from messages import Messages
 from raid import Raid
 from utils import *
-from yvondil_ateldil import bot as ya
+from yvondir_ateldil import bot as ya
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-# embed management
-Mbrs = ['Place libre' for i in range(12)]
-ttl = ''
-desc = ''
-
 
 print(Raidlist['nSS']['fr_name'])
 intents = discord.Intents.all()
@@ -56,42 +50,31 @@ async def on_message(message):
     # Match "/end <arg>"
     if re.match(r'^/(end)\s', message.content):
         if message.author.guild_permissions.manage_roles and message.author.guild_permissions.manage_channels:
-            raid_id, *others = extract_command_args(message.content)
-            logging.debug(raid_id, raid_list)
+            raid_identifier, *others = extract_command_args(message.content)
+            raid = raid_list.get(raid_identifier)
 
-            vocal = get(guild.voice_channels, name=raid_id)
-            tank_role = get(guild.roles, name=f"Tank_{raid_id}")
-            heal_role = get(guild.roles, name=f"Heal_{raid_id}")
-            dd_role = get(guild.roles, name=f"DD_{raid_id}")
-            await vocal.delete()
-            await tank_role.delete()
-            await heal_role.delete()
-            await dd_role.delete()
-            await message.delete()
-            MSG = await message.channel.fetch_message(raid_list[raid_id])
-            await MSG.delete()
-            raid_list.pop(raid_id)
+            if raid is None:
+                await message.reply(content=Messages.get('raid_not_found') % raid_identifier)
+                return
+
+            await raid.end(guild=guild, original_message=message)
+            raid_list.pop(raid_identifier)
 
     if re.match(r'^/(sd|set_date)\s?', message.content):
-        print(raid_list)
+        raid_identifier, date, hour, *others = extract_command_args(message.content)
+        raid = raid_list[raid_identifier]
+        raid.date = datetime.datetime.fromisoformat(f"{date} {hour}")
 
-        header, msg, date, hour = message.content.split(' ')
-        date = date + ' ' + hour
-        print(msg, raid_list[msg], date)
-        embed = (await message.channel.fetch_message(raid_list[msg]))[0]
+        raid_message = await message.channel.fetch_message(raid.identifier)
 
-        date = datetime.datetime.fromisoformat(date)
-        date = date.strftime("Le %A %d %B %Y à %H:%M")
-        print(date)
-        embed.set_author(name=date)
-        await MSG.edit(embed=embed)
+        await raid_message.edit(embed=raid.render())
         await message.delete()
 
     if re.match(r'^/(r|raid)\s?', message.content):
         raid_identifier, *others = extract_command_args(message.content)
 
-        if Raidlist[raid_identifier] is None:
-            message.reply(content=Messages.get('raid_not_found') % raid_identifier)
+        if Raidlist.get(raid_identifier) is None:
+            await message.reply(content=Messages.get('raid_not_found') % raid_identifier)
             return
 
         await message.delete()

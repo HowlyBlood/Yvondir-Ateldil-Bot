@@ -2,7 +2,7 @@ class Instanciable:
     def start(self):
         raise Exception('Not implemented error')
 
-    def end(self):
+    def end(self, guild, original_message):
         raise Exception('Not implemented error')
 
 
