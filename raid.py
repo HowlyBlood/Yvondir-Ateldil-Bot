@@ -1,11 +1,12 @@
 import discord
 
+import config
 from interfaces import Instanciable
 from enum import Enum
 
 from lists import Raidlist
 from messages import Messages
-
+from yvondil_ateldil import bot as ya_bot
 
 class RaidStatus(Enum):
     PLANNED = 0
@@ -47,19 +48,19 @@ class Raid(Instanciable):
         await vocal.set_permissions(heal_role, connect=True)
         await vocal.set_permissions(dd_role, connect=True)
 
-        if len(Raidlist[self.identifier]['DLC']) == 'Vanilla':
-            desc = Messages.get('vocal_created_no_dlc') % (Raidlist[self.identifier]['fr_name'], Raidlist[self.identifier]['fr_sets'])
+        if Raidlist[self.raid]['DLC'] == 'Vanilla':
+            desc = Messages.get('created_vocal_no_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
         else:
-            desc = Messages.get('vocal_created_dlc') % (Raidlist[self.identifier]['fr_name'], Raidlist[self.identifier]['DLC'], Raidlist[self.identifier]['fr_sets'])
+            desc = Messages.get('created_vocal_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['DLC'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
         embed.set_author(name=Messages.get('explain_date_definition'))
         embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/647916987950956554.png?size=64&v=1")
 
         for index, tank in enumerate(self.members.get('tank')):
-            embed.add_field(name=f"Tank {index} :", value=tank.user.mention, inline=True)
+            embed.add_field(name=f"Tank {index + 1} :", value=tank.user.mention, inline=True)
 
         for index, heal in enumerate(self.members.get('heal')):
             embed.add_field(name=f"Heal {index + 1} :", value=heal.user.mention, inline=True)
@@ -71,6 +72,7 @@ class Raid(Instanciable):
         raid_description_message = await original_message.channel.send(embed=embed)
         self.discord_message_identifier = raid_description_message.id
 
-        await raid_description_message.add_reaction(discord_client.get_emoji(TANK))
-        await raid_description_message.add_reaction(discord_client.get_emoji(HEAL))
-        await raid_description_message.add_reaction(discord_client.get_emoji(DD))
+        bot = ya_bot.Bot()
+        for role in ["tank", "heal", "dd"]:
+            installed_emoji = bot.get_emoji(role)
+            await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))

@@ -1,4 +1,3 @@
-# bot.py
 import datetime
 import locale
 import logging
@@ -11,6 +10,7 @@ from lists import Raidlist
 from messages import Messages
 from raid import Raid
 from utils import *
+from yvondil_ateldil import bot as ya
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -24,6 +24,7 @@ desc = ''
 print(Raidlist['nSS']['fr_name'])
 intents = discord.Intents.all()
 bot = discord.Client(intents=intents)
+ya_bot = ya.Bot()
 
 # Contains all running Raid /!\ do not survive bot restart
 raid_list = {}
@@ -33,7 +34,8 @@ raid_list = {}
 async def on_ready():
     guild = discord.utils.get(bot.guilds, name=config.GUILD)
     members = '\n - '.join([member.name for member in guild.members])
-    cat = guild.categories
+    await ya_bot.setup(guild)
+
     print(f'Bot connected as {bot.user}')
     print(
         f'{bot.user} is connected to the following guild:\n'
@@ -95,9 +97,9 @@ async def on_message(message):
         await message.delete()
 
         raid = Raid(raid=raid_identifier, global_identifier=f"{raid_identifier}_{len(raid_list) + 1}", date=None)
-        print(guild.categories)
-        # TODO : ici la categorie Salon Vocaux n'est pas reconnue
-        await raid.setup(discord_client=bot, guild=guild, channel_category=guild.categories.index(config.RAIDS), original_message=message)
+        channel_category = list(filter(lambda category: config.RAIDS == category.name, guild.categories))[0]
+
+        await raid.setup(discord_client=bot, guild=guild, channel_category=channel_category, original_message=message)
         raid_list[raid.identifier] = raid
 
 
