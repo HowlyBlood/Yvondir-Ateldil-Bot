@@ -143,6 +143,4 @@ async def on_raw_reaction_remove(payload):
     await msg.edit(embed=await raid.render())
 
 
-
-
 bot.run(config.TOKEN)
