@@ -15,12 +15,13 @@ class Bot:
         self._guild = None
 
     async def setup(self, guild):
-        print('Setting up bot.')
+        print("Setting up bot.")
         if guild is None:
             raise Exception('guild is None')
 
         self._guild = guild
         await self.__setup_emoji()
+        print("Done setting up bot")
 
     async def __setup_emoji(self):
         installed_emojis = await self._guild.fetch_emojis()
@@ -41,11 +42,16 @@ class Bot:
                 emoji['id'] = found_emoji[0].id
 
     def get_emoji(self, name):
-        if name.startwith(f"{self.emoji_prefix}_"):
+        if name.startswith(f"{self.emoji_prefix}_"):
             name = name.replace(f"{self.emoji_prefix}_", "")
 
         return self.emojis.get(name)['id']
 
     def get_role(self, emoji):
-        name = emoji.replace(f"{self.emoji_prefix}_", "")
+        """
+        Get the raw role name from
+        :param emoji: PartialEmoji
+        :return: str
+        """
+        name = emoji.name.replace(f"{self.emoji_prefix}_", "")
         return self.emojis.get(name)['role']

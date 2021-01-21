@@ -29,7 +29,7 @@ class Raid(Instanciable):
         self.members = {
             'Tank': [None for i in range(self.TANK_LIMIT)],
             'Heal': [None for i in range(self.HEAL_LIMIT)],
-            'DD': [None for i in range(self.DD_LIMIT)]
+            'DD': [None for i in range(self.DD_LIMIT)],
         }
 
     def start(self):
@@ -79,20 +79,28 @@ class Raid(Instanciable):
         bot = ya_bot.Bot()
         role = bot.get_role(emoji)
 
-        print(emoji, user)
-        print(self._member_list())
-        return True
+        try:
+            guild_role = f"{role}_{self.identifier}"
+            not_assigned_index = self.members[role].index(None)
+            self.members[role][not_assigned_index] = user
+            return True, guild_role
+
+        except:
+            return False, None
 
     async def render(self):
         if Raidlist[self.raid]['DLC'] == 'Vanilla':
-            desc = Messages.get('created_vocal_no_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
+            desc = Messages.get('created_vocal_no_dlc') % (
+            Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
         else:
-            desc = Messages.get('created_vocal_dlc') % (Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['DLC'], Raidlist[self.raid]['fr_sets'])
+            desc = Messages.get('created_vocal_dlc') % (
+            Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['DLC'], Raidlist[self.raid]['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
-        author_message = self.date.strftime("Le %A %d %B %Y à %H:%M") if self.date is not None else Messages.get('explain_date_definition')
+        author_message = self.date.strftime("Le %A %d %B %Y à %H:%M") if self.date is not None else Messages.get(
+            'explain_date_definition')
         embed.set_author(name=author_message)
         embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/647916987950956554.png?size=64&v=1")
 
