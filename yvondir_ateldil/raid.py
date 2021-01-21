@@ -88,6 +88,21 @@ class Raid(Instanciable):
         except:
             return False, None
 
+    def remove_member(self, emoji, user):
+        bot = ya_bot.Bot()
+        role = bot.get_role(emoji)
+        guild_role = f"{role}_{self.identifier}"
+
+        iterator = (i for i, u in enumerate(self.members[role]) if u is not None and u.id == user.id)
+        member_index = next(iterator)
+
+        if member_index is None:
+            return False, None
+
+        self.members[role][member_index] = None
+        return True, guild_role
+
+
     async def render(self):
         if Raidlist[self.raid]['DLC'] == 'Vanilla':
             desc = Messages.get('created_vocal_no_dlc') % (
