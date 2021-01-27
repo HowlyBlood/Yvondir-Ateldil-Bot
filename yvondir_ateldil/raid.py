@@ -5,7 +5,7 @@ from enum import Enum
 
 from yvondir_ateldil.lists import Raidlist
 from yvondir_ateldil.messages import Messages
-from yvondir_ateldil import bot as ya_bot
+import yvondirateldil as ya_bot
 from yvondir_ateldil.interfaces import Instanciable
 
 
@@ -60,7 +60,7 @@ class Raid(Instanciable):
         raid_description_message = await original_message.channel.send(embed=embed)
         self.discord_message_identifier = raid_description_message.id
 
-        bot = ya_bot.Bot()
+        bot = ya_bot.YvondirAteldil()
         for role in ["tank", "heal", "dd"]:
             installed_emoji = bot.get_emoji(role)
             await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
@@ -72,7 +72,7 @@ class Raid(Instanciable):
         return members
 
     def add_member(self, emoji, user):
-        bot = ya_bot.Bot()
+        bot = ya_bot.YvondirAteldil()
         role = bot.get_role(emoji)
 
         try:
@@ -85,7 +85,7 @@ class Raid(Instanciable):
             return False, None
 
     def remove_member(self, emoji, user):
-        bot = ya_bot.Bot()
+        bot = ya_bot.YvondirAteldil()
         role = bot.get_role(emoji)
         guild_role = f"{role}_{self.identifier}"
 
