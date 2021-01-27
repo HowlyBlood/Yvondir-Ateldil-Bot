@@ -82,7 +82,7 @@ async def on_message(message):
 
         await message.delete()
 
-        raid = Raid(raid=raid_identifier, global_identifier=f"{raid_identifier}_{len(raid_list) + 1}", date=None)
+        raid = Raid(raid_fr_name=raid_identifier, global_identifier=f"{raid_identifier}_{len(raid_list) + 1}", date=None)
         channel_category = list(filter(lambda category: config.RAIDS == category.name, guild.categories))[0]
 
         await raid.setup(discord_client=bot, guild=guild, channel_category=channel_category, original_message=message)

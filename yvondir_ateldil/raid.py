@@ -16,20 +16,17 @@ class RaidStatus(Enum):
 
 
 class Raid(Instanciable):
-    TANK_LIMIT = 1
-    HEAL_LIMIT = 2
-    DD_LIMIT = 9
 
-    def __init__(self, raid, global_identifier, date):
+    def __init__(self, raid_fr_name, global_identifier, date):
         self.identifier = global_identifier
-        self.raid = raid
+        self.raid = Raidlist[raid_fr_name]
         self.date = date
         self.status = RaidStatus.PLANNED
         self.discord_message_identifier = None
         self.members = {
-            'Tank': [None for i in range(self.TANK_LIMIT)],
-            'Heal': [None for i in range(self.HEAL_LIMIT)],
-            'DD': [None for i in range(self.DD_LIMIT)],
+            'Tank': [None for i in range(self.raid['requirements']['tank'])],
+            'Heal': [None for i in range(self.raid['requirements']['heal'])],
+            'DD': [None for i in range(self.raid['requirements']['dd'])],
         }
 
     def start(self):
@@ -53,7 +50,6 @@ class Raid(Instanciable):
         dd_role = await guild.create_role(name=f"DD_{self.identifier}", colour=discord.Colour(0x2ecc71))
         heal_role = await guild.create_role(name=f"Heal_{self.identifier}", colour=discord.Colour(0x3498db))
         tank_role = await guild.create_role(name=f"Tank_{self.identifier}", colour=discord.Colour(0xe74c3c))
-        permissions = {tank_role, heal_role, dd_role}
 
         vocal = await guild.create_voice_channel(f'{self.identifier}', user_limit=12, category=channel_category)
         await vocal.set_permissions(tank_role, connect=True)
@@ -102,16 +98,13 @@ class Raid(Instanciable):
         self.members[role][member_index] = None
         return True, guild_role
 
-
     async def render(self):
-        if Raidlist[self.raid]['DLC'] == 'Vanilla':
-            desc = Messages.get('created_vocal_no_dlc') % (
-            Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['fr_sets'])
+        if self.raid['DLC'] == 'Vanilla':
+            desc = Messages.get('created_vocal_no_dlc') % (self.raid['fr_name'], self.raid['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
         else:
-            desc = Messages.get('created_vocal_dlc') % (
-            Raidlist[self.raid]['fr_name'], Raidlist[self.raid]['DLC'], Raidlist[self.raid]['fr_sets'])
+            desc = Messages.get('created_vocal_dlc') % (self.raid['fr_name'], self.raid['DLC'], self.raid['fr_sets'])
             embed = discord.Embed(title=self.identifier, description=desc, color=0xfa3232)
 
         author_message = self.date.strftime("Le %A %d %B %Y à %H:%M") if self.date is not None else Messages.get(
