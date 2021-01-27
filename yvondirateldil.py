@@ -58,11 +58,11 @@ class YvondirAteldil:
             else:
                 emoji['id'] = found_emoji[0].id
 
-    def get_emoji(self, name):
+    def get_emoji_from_name(self, name):
         name = name.replace(f"{self.emoji_prefix}_", "")
         return self.emojis.get(name)['id']
 
-    def get_role(self, emoji):
+    def get_role_from_emoji(self, emoji):
         name = emoji.name.replace(f"{self.emoji_prefix}_", "")
         return self.emojis.get(name)['role']
 

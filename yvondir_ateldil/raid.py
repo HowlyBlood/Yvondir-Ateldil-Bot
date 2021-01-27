@@ -62,8 +62,8 @@ class Raid(Instanciable):
 
         bot = ya_bot.YvondirAteldil()
         for role in ["tank", "heal", "dd"]:
-            installed_emoji = bot.get_emoji(role)
-            await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
+            installed_emoji = bot.get_emoji_from_name(role)
+            await raid_description_message.add_reaction(discord_client.get_emoji_from_name(installed_emoji))
 
     def _member_list(self):
         members = []
@@ -73,7 +73,7 @@ class Raid(Instanciable):
 
     def add_member(self, emoji, user):
         bot = ya_bot.YvondirAteldil()
-        role = bot.get_role(emoji)
+        role = bot.get_role_from_emoji(emoji)
 
         try:
             guild_role = f"{role}_{self.identifier}"
@@ -86,7 +86,7 @@ class Raid(Instanciable):
 
     def remove_member(self, emoji, user):
         bot = ya_bot.YvondirAteldil()
-        role = bot.get_role(emoji)
+        role = bot.get_role_from_emoji(emoji)
         guild_role = f"{role}_{self.identifier}"
 
         iterator = (i for i, u in enumerate(self.members[role]) if u is not None and u.id == user.id)
