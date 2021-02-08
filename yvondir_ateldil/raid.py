@@ -63,7 +63,7 @@ class Raid(Instanciable):
         bot = ya_bot.YvondirAteldil()
         for role in ["tank", "heal", "dd"]:
             installed_emoji = bot.get_emoji_from_name(role)
-            await raid_description_message.add_reaction(discord_client.get_emoji_from_name(installed_emoji))
+            await raid_description_message.add_reaction(discord_client.get_emoji(installed_emoji))
 
     def _member_list(self):
         members = []
