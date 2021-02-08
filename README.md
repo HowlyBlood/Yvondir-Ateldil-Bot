@@ -1,5 +1,6 @@
+
 # Yvondir-Ateldil-Bot
-Discord Bot to coordonate raids in The Elder Scroll Online. Work In Progress, feel free to ask for modification or collaboration.
+Discord Bot to coordonate raids and dungeons in The Elder Scroll Online. Work In Progress, feel free to ask for modification or collaboration.
 
 
 ### Installation
