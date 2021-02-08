@@ -30,4 +30,4 @@ jobs:
           push: true
           tags: rg.fr-par.scw.cloud/yvondir-ateldil/yvondir-ateldil-bot:latest
           build-args: |
-            PYTHON_VERSION=${{ PYTHON_VERSION }}
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
