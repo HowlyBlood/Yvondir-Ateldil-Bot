@@ -1,38 +1,28 @@
 ARG PYTHON_VERSION
 
-FROM python:$PYTHON_VERSION-buster
+FROM python:$PYTHON_VERSION-alpine
 
 MAINTAINER "Guillaume M <marmorag>"
+
+ENV LD_LIBRARY_PATH /usr/local/lib:/usr/lib
+ENV MUSL_LOCPATH="/usr/share/i18n/locales/musl"
+
+RUN apk --no-cache add -q git build-base gnupg linux-headers xz musl-locales musl-locales-lang \
+    > /dev/null && \
+    # configure locale
+#    sed -i -e 's/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/' /etc/locale.gen && \
+#    locale-gen && \
+    # remove caches
+    rm -rf /var/cache/apk/*
 
 WORKDIR /app
 COPY . .
 
-RUN apt-get update && \
-    # basic deps
-    apt-get install -y -qq git build-essential locales \
-    # voice support
-    # libffi-dev libsodium-dev libopus-dev ffmpeg \
-    > /dev/null && \
-    # configure locale
-    sed -i -e 's/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/' /etc/locale.gen && \
-    locale-gen && \
-    # update pip, install Cython, pytest, youtube-dl
-    pip install -U pip Cython -q --retries 30 && \
-    # remove caches
-    rm -rf /root/.cache/pip/* && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    find /usr/local -depth \
-        \( \
-            \( -type d -a \( -name test -o -name tests \) \) \
-            -o \
-            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
-        \) -exec rm -rf '{}' +
+#ENV LC_ALL fr_FR.UTF-8
+#ENV LANG fr_FR.UTF-8
+#ENV LANGUAGE fr_FR:fr
 
-ENV LC_ALL fr_FR.UTF-8
-ENV LANG fr_FR.UTF-8
-ENV LANGUAGE fr_FR:fr
-
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+    rm -rf /root/.cache/pip/*
 
 CMD ["python", "-u", "main.py"]
