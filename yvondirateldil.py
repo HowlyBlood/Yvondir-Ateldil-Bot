@@ -110,9 +110,9 @@ class YvondirAteldil:
                 return
 
             raid.date = datetime.datetime.fromisoformat(f"{date} {hour}")
-            raid_message = await message.channel.fetch_message(raid.identifier)
+            raid_message = await message.channel.fetch_message(raid.discord_message_identifier)
 
-            await raid_message.edit(embed=raid.render())
+            await raid_message.edit(embed=await raid.render())
             await message.delete()
 
         if re.match(r'^/(r|raid)\s?', message.content):
