@@ -83,7 +83,7 @@ class YvondirAteldil:
         )
 
     async def on_message(self, message):
-        if message.channel != self.__listen_channel:
+        if message.channel.name != self._listen_channel:
             return
 
         # Match either "/h" or "/help"
