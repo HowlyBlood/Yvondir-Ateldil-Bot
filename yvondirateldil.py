@@ -27,6 +27,7 @@ class YvondirAteldil:
         self._token = os.getenv('DISCORD_TOKEN')
         self._guild_name = os.getenv('DISCORD_GUILD')
         self._raid_channel = os.getenv('RAIDS_VOCAL_CATEGORY')
+        self._listen_channel = os.getenv('DISCORD_CHANNEL')
 
         intents = discord.Intents.all()
         self._bot = discord.Client(intents=intents)
@@ -82,6 +83,8 @@ class YvondirAteldil:
         )
 
     async def on_message(self, message):
+        if message.channel != self.__listen_channel:
+            return
 
         # Match either "/h" or "/help"
         if re.match('^/(h|help)$', message.content):
